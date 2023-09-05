@@ -7,9 +7,9 @@
 #include <gsl/gsl_statistics.h>
 
 
-#define NI 5 // numero de individuos
+#define NI 10000 // numero de individuos
 #define TR 1.0 // tamanho da rede
-#define R 0.1 // raio de interacao
+#define R 0.01 // raio de interacao
 #define Rm 0.4 // raio de movimento
 #define NG 500 // numero de geragoes = 800 anos t=1,2anos
 #define NF 250// numero de arquivos gerados
@@ -34,7 +34,7 @@ void ic(const gsl_rng *w, struct INDV *in){
 	int c;
 	
 	// Criando  individuos em posicoes aleatorias
-	for(c = 0; c < 5; c++){
+	for(c = 0; c < 10; c++){
 		in[c].ezst = 1;
 		in[c].x=  gsl_rng_uniform(w);
 		in[c].y=  gsl_rng_uniform(w);
@@ -68,7 +68,7 @@ void op(int t, struct INDV *in){
 }
 
 int main(int argc, char **argv){
-	int n, j, t, l;
+	int n, j, t, l, f;
 	double dy, dx, dxm, dym, angulo, md;
 	struct INDV *in;
 
@@ -168,6 +168,39 @@ int main(int argc, char **argv){
 				}
 			}
 			
+			for(j = 0; j < NI; j++){
+				if(in[j].ezst == 1 && in[j].sexo != in[n].sexo){
+					dx = in[j].x - in[n].x;
+					if(dx>TR){dx-=TR;}
+					if(dx<0){dx+=TR;}
+					dy = in[j].y - in[n].y;
+					if(dy>TR){dy-=TR;}
+					if(dy<0){dy+=TR;}
+					if(sqrt(dx*dx+dy*dy) < R){
+						for(f = 0; f < NI; f++){
+							if(in[f].ezst == 0){
+								in[f].ezst = 1;
+								if(in[n].x > in[j].x){
+									in[f].x = in[j].x + (0.5*dx);
+								}else{
+									in[f].x = in[n].x + (0.5*dx);
+								}
+								if(in[n].y > in[j].y){
+									in[f].y = in[j].y + (0.5*dy);
+								}else{
+									in[f].y = in[n].y + (0.5*dy);
+								}
+								if(gsl_rng_uniform(w) < 0.5)
+									in[f].sexo = 1;
+								else
+									in[f].sexo = 2;
+								f += NI;
+							}
+						}
+						j += NI;
+					}
+				}
+			}
 		}
 
 		if(t >= round(a0)){
