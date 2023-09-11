@@ -7,17 +7,18 @@
 #include <gsl/gsl_statistics.h>
 
 
-#define NI 5000 // numero de individuos
+#define NI 1000 // numero de individuos
 #define TR 1.0 // tamanho da rede
 #define R 0.01 // raio de interacao
-#define Rm 0.4 // raio de movimento
+#define Rm 0.005 // raio de movimento
 #define NG 500 // numero de geragoes = 800 anos t=1,2anos
 #define NF 250// numero de arquivos gerados
 
 #define LS 0
 
-#define pA_die 0.02
-#define pa_die 0.01
+#define pA_die 0.1
+#define pa_die 0.1
+#define genesel 10 // aa = 0 | Aa = 10 | AA = 11
 
 #define r (double)NG/NF
 #define q pow(NG, 1.0/(NF-1))
@@ -37,7 +38,7 @@ void ic(const gsl_rng *w, struct INDV *in){
 	double g;
 	
 	// Criando  individuos em posicoes aleatorias
-	for(c = 0; c < 200; c++){
+	for(c = 0; c < 100; c++){
 		in[c].ezst = 1;
 		in[c].x=  gsl_rng_uniform(w);
 		in[c].y=  gsl_rng_uniform(w);
@@ -139,6 +140,7 @@ int main(int argc, char **argv){
 
 	// Definido a seed 
 	gsl_rng_default_seed= (argc == 2) ? atoi(argv[1]) : time(NULL);
+	printf("A semente: %lu\n", gsl_rng_default_seed);
 	
 	// Criando um ponteiro para guardar um número aleatório
 	gsl_rng *w= gsl_rng_alloc(gsl_rng_taus);
@@ -152,6 +154,8 @@ int main(int argc, char **argv){
 	FILE *file;
 	sprintf(name, "datg/p.dat");
 	file = fopen(name, "w");
+
+	fprintf(file, "0 %d %d %d\n", AA, Aa, aa);
 
 	
 
@@ -175,7 +179,7 @@ int main(int argc, char **argv){
 						else if(fabs(dy) > TR * 0.5 && dy < 0)
 							dy += TR;
 						//printf(" dy = %e", dy);
-						if(sqrt(dx*dx+dy*dy) < md && in[n].sexo != in[j].sexo){
+						if(sqrt(dx*dx+dy*dy) < md && in[n].sexo != in[j].sexo && in[j].gene == genesel){
 							md = sqrt(dx*dx+dy*dy);
 							//printf(" md = %e", md);
 							dxm = dx;
@@ -202,7 +206,7 @@ int main(int argc, char **argv){
 						angulo = 0;
 					}
 				}
-				if(dym == 0 && dxm ==0){
+				if(dym == 0 && dxm == 0){
 					in[n].x += (gsl_rng_uniform(w) * 0.01) + (gsl_rng_uniform(w) * (-0.01));
 					if(in[n].x>TR){
 						in[n].x -= TR;
@@ -217,6 +221,21 @@ int main(int argc, char **argv){
 					if(in[n].y<0){
 						in[n].y += TR;
 					}		
+				/*}else if(dxm < 0.01 && dym < 0.01){
+					in[n].x += cos(angulo)*(dxm * 0.5);
+					if(in[n].x>TR){
+						in[n].x -= TR;
+					}
+					if(in[n].x<0){
+						in[n].x += TR;
+					}
+					in[n].y += sin(angulo)*(dym * 0.5);
+					if(in[n].y>TR){
+						in[n].y -= TR;
+					}
+					if(in[n].y<0){
+						in[n].y += TR;
+					}*/
 				}else{
 					in[n].x += cos(angulo)*(gsl_rng_uniform(w) * 0.01);
 					if(in[n].x>TR){
